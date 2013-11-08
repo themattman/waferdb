@@ -3,6 +3,8 @@ waferDB.js -- Caching Middleware for JavaScript
 
 A lightweight caching layer for a key-value store.
 
+<img src="http://semiaccurate.com/assets/uploads/2011/05/TSMC-Wafer.jpg" width="200px">
+
 ## usage
 
 `wafer.get('user_2389')`
