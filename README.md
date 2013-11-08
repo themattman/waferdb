@@ -17,7 +17,7 @@ will return the object associated with that key. To optimize for low latency, th
 
 ### refresh-on-dirty
 
-### flush-on-dirty
+### purge-on-dirty
 
 ### fire-and-forget
 
