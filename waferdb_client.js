@@ -32,7 +32,7 @@ var wafer = (function(){
     console.log('ERROR!');
     console.log(data);
   });
-  
+
 
   function inCache(key){
     // Lookup the key in the cache
@@ -41,12 +41,16 @@ var wafer = (function(){
     return true; // for testing purposes only
   }
 
-  function getKey(key){
+  function getFromCache(key){
     // Retrieve the value associated with the given key from the cache
-    return true; // for testing purposes only
+    return {
+      'result': 'success',
+      'key': key,
+      'value': value
+    }; // for testing purposes only
   }
 
-  function writeCache(key, value){
+  function writeToCache(key, value){
     // write to the cache
   }
 
@@ -70,11 +74,11 @@ var wafer = (function(){
         console.log(data);
 
         // return to user
-        cb({ 'result': data });
+        cb(data);
       });
     } else {
       // Retrieve from cache & return to user
-      cb({ 'result': getKey(key) });
+      cb(getFromCache(key));
     }
   };
 
