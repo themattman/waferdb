@@ -1,0 +1,35 @@
+{
+  "name": "waferDB",
+  "description": "Caching middleware for JavaScript",
+  "tags": [
+    "cache",
+    "caching",
+    "middleware",
+    "consistency",
+    "database",
+    "wafer"
+  ],
+  "version": "0.0.1",
+  "authors": [
+    "Matt Kneiser",
+    "Vijairam Parasuraman",
+    "Balaji Soundararajan"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/themattman/waferDB"
+  },
+  "bugs": {
+    "url": "http://github.com/themattman/waferDB/issues"
+  },
+  "engines": [
+    "node >= 0.10"
+  ],
+  "main": "index.js",
+  "dependencies": [
+    "request"
+  ],
+  "scripts": {
+    "test": "node tests/run.js"
+  }
+}
