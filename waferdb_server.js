@@ -3,6 +3,7 @@ var io                 = require('socket.io').listen(9000)
   , consistency_levels = ['refresh-on-dirty', 'flush-on-dirty', 'fire-and-forget']
   , consistency_level  = 0
   , server_cache       = []
+  , connection_map     = {}
 ;
 
 io.sockets.on('connection', function(socket){
@@ -10,9 +11,10 @@ io.sockets.on('connection', function(socket){
   console.log(socket.id);
   server_cache.push[{
     "id": socket.id,
-    "values": [],
+    "keys": [],
     "reconnected": false
   }];
+  connection_map[socket_id] = socket;
 
   // Send the client it's id so that it can re-establish its connection if broken
   socket.emit('get_connected_id', { 'socket_id': socket.id });
@@ -40,8 +42,8 @@ io.sockets.on('connection', function(socket){
   socket.on('reconnect', function(data){
     console.log('reconnect', socket.id);
     console.log(data);
-    if(data && data.socket_id){
-      server_cache[data.socket_id].reconnected = true;
+    if(data && data.socket_id) {
+      server_cache.id[data.socket_id].reconnected = true;
     }
   });
 
@@ -50,8 +52,10 @@ io.sockets.on('connection', function(socket){
     *
     */
   socket.on('get', function(request){
+    // 1. Log the put operation
     console.log('server_get('+request.key+')');
 
+    // 2. Read the value from the database
     db.getFromDatabase({ 'key': request.key }, function(db_response){
       if(db_response.result === 'error') {
         socket.emit('get_ack', { 'result': 'error' });
@@ -59,6 +63,15 @@ io.sockets.on('connection', function(socket){
         socket.emit('get_ack', { 'result': 'success' });
       }
     });
+
+    // 3. Update server cache when the client get's a key
+    // Saving on time? This should execute during db I/O
+    for(var i in server_cache){
+      if(server_cache.id === socket_id) {
+        server_cache[i].keys.push(request.key);
+        break;
+      }
+    }
   });
 
   /**
@@ -66,14 +79,21 @@ io.sockets.on('connection', function(socket){
     *
     */
   socket.on('put', function(request){
+    // 1. Log the put operation
     console.log('server_put('+request.key+', '+request.value+')');
 
+    // 2. Write the value to the database
     db.writeToDatabase({ 'key': request.key, 'value': request.value }, function(db_response){
       if(request.result === 'error') {
         socket.emit('put_ack', { 'result': 'error' });
       } else {
         socket.emit('put_ack', { 'result': 'success' });
       }
+    });
+
+    // 3. Invalidate the other caches
+    invalidate_caches(request.key, request.value, socket, function(){
+      console.log('done invalidating caches');
     });
   });
 });
@@ -84,6 +104,14 @@ exports.set_consistency_level = function(new_consistency_level){
   consistency_level = new_consistency_level;
 };
 
-function invalidate(){
-
+function invalidate_caches(key, value, socket, cb){
+  for(var i in server_cache) {
+    for(var j in server_cache[i].keys) {
+      if(server_cache[i].keys[j] === key) {
+        socket.emit('invalidate', { 'key': key, 'value', value });
+        // socket.on('invalidate_done', function(){});
+      }
+    }
+  }
+  cb();
 }
