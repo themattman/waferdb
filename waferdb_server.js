@@ -8,7 +8,7 @@ var io                 = require('socket.io').listen(9000)
 io.sockets.on('connection', function(socket){
   console.log('connection established for WebSocket with wafer', socket.id);
   server_cache[socket.id] = {
-    'keys': []
+    'keys': [],
     'reconnected': false
   };
 
@@ -48,7 +48,7 @@ io.sockets.on('connection', function(socket){
     *
     */
   socket.on('get', function(request){
-    // 1. Log the put operation
+    // 1. Log the get operation
     console.log('server_get('+request.key+')');
 
     // 2. Read the value from the database
@@ -56,13 +56,13 @@ io.sockets.on('connection', function(socket){
       if(db_response.result === 'error') {
         socket.emit('get_ack', { 'result': 'error' });
       } else {
-        socket.emit('get_ack', { db_response });
+        socket.emit('get_ack', db_response);
       }
     });
 
     // 3. Update server cache when the client get's a key
     // Saving on time? This should execute during db I/O
-    server_cache[socket_id].keys.push(request.key);
+    server_cache[socket.id].keys.push(request.key);
   });
 
   /**
@@ -78,7 +78,7 @@ io.sockets.on('connection', function(socket){
       if(request.result === 'error') {
         socket.emit('put_ack', { 'result': 'error' });
       } else {
-        socket.emit('put_ack', { db_response });
+        socket.emit('put_ack', db_response);
       }
     });
 
@@ -96,11 +96,10 @@ exports.set_consistency_level = function(new_consistency_level){
 };
 
 function invalidate_caches(key, value, socket, cb){
-    for(var i in server_cache[socket.id].keys) {
-      if(server_cache[socket.id].keys[i] === key) {
-        socket.emit('invalidate', { 'key': key, 'value', value });
-        // socket.on('invalidate_done', function(){});
-      }
+  for(var i in server_cache[socket.id].keys) {
+    if(server_cache[socket.id].keys[i] === key) {
+      socket.emit('invalidate', { 'key': key, 'value': value });
+      // socket.on('invalidate_done', function(){});
     }
   }
   cb(); // placement of this depends on consistency level

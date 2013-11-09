@@ -13,6 +13,7 @@
   *
   */
 exports.getFromDatabase = function(key, cb){
+  value = 'bigdata';
   cb({
     'result': 'success',
     'key': key,
