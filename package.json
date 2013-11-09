@@ -27,7 +27,8 @@
   ],
   "main": "index.js",
   "dependencies": [
-    "request"
+    "request",
+    "socket.io"
   ],
   "scripts": {
     "test": "node tests/run.js"
