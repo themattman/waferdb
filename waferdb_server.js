@@ -7,12 +7,10 @@ var io                 = require('socket.io').listen(9000)
 
 io.sockets.on('connection', function(socket){
   console.log('connection established for WebSocket with wafer', socket.id);
-  server_cache.push[{
-    socket.id: {
-      'keys': []
-      'reconnected': false
-    }
-  }];
+  server_cache[socket.id] = {
+    'keys': []
+    'reconnected': false
+  };
 
   // Send the client it's id so that it can re-establish its connection if broken
   socket.emit('get_connected_id', { 'socket_id': socket.id });
