@@ -2,9 +2,37 @@
 // Will expose functionality underneath a global 'wafer' object.
 var wafer = (function(){
   var socket = io.connect('http://localhost:9000')
-    , API    = {}
-    , cache  = {}
+    , API       = {}
+    , cache     = {}
+    , socket_id = null
   ;
+
+  /**
+    * Socket.IO Event Handling
+    *
+    */
+  socket.on('connecting', function(){
+    console.log('connecting');
+  });
+  socket.on('connect', function(){
+    console.log('connected');
+  });
+  socket.on('get_connected_id', function(data){
+    console.log('get_connected_id', data);
+    socket_id = data.socket_id;
+  });
+  socket.on('reconnect', function(){
+    console.log('reconnected');
+    socket.emit('reconnect', { 'socket_id': socket_id });
+  });
+  socket.on('disconnect', function(){
+    console.log('disconnected');
+  });
+  socket.on('error', function(data){
+    console.log('ERROR!');
+    console.log(data);
+  });
+  
 
   function inCache(key){
     // Lookup the key in the cache
@@ -16,10 +44,10 @@ var wafer = (function(){
   function getKey(key){
     // Retrieve the value associated with the given key from the cache
     return true; // for testing purposes only
-  };
+  }
 
   function writeCache(key, value){
-
+    // write to the cache
   }
 
   /**
@@ -79,7 +107,7 @@ var wafer = (function(){
         }
 
         // return to user
-        cb({ 'result': 'successful' });
+        cb({ 'result': 'success' });
       }
     });
   };

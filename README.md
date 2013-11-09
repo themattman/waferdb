@@ -7,11 +7,15 @@ A lightweight caching layer for a key-value store.
 
 ## usage
 
-`wafer.get('user_2389')`
+    wafer.get('user_2389', function(data){
+      console.log(data);
+    });
 
 will return the object associated with that key. To optimize for low latency, this object maybe cached on the client. Caching takes into account dirty objects, and replenishes them according to the consistency level the server is set to.
 
-`wafer.put('user_3823', 'shopping_cart_full')`
+    wafer.put('user_3823', 'shopping_cart_full', function(response){
+      console.log(response);
+    });
 
 ## tunable consistency
 
@@ -44,3 +48,9 @@ Matt Kneiser
 Vijairam Parasuraman
 
 Balaji Soundararajan
+
+## Features
+
+- run a command to get statistics (cache hit rate, etc.)
+
+- resilient to server going down (write to fs asynchly, don't affect server perf)
