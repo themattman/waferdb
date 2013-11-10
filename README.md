@@ -54,3 +54,6 @@ Balaji Soundararajan
 - run a command to get statistics (cache hit rate, etc.)
 
 - resilient to server going down (write to fs asynchly, don't affect server perf)
+
+## TODO
+- shut down+restart server. error. GottoFix
