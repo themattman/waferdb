@@ -56,3 +56,6 @@ Balaji Soundararajan
 - resilient to server going down/reconnects save state (write to fs asynchly, don't affect server perf)
 
 - db adapter is modular and easy to extend
+
+## TODO
+- shut down+restart server. error. GottoFix
