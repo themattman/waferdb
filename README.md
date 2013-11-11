@@ -53,4 +53,6 @@ Balaji Soundararajan
 
 - run a command to get statistics (cache hit rate, etc.)
 
-- resilient to server going down (write to fs asynchly, don't affect server perf)
+- resilient to server going down/reconnects save state (write to fs asynchly, don't affect server perf)
+
+- db adapter is modular and easy to extend
