@@ -7,8 +7,24 @@ A lightweight caching layer for a key-value store.
 
 ## usage
 
-    wafer.get('user_2389', function(data){
+    wafer.create('user_2389', '', function(data){
       console.log(data);
+    });
+
+    wafer.read('user_2389', function(data){
+      console.log(data);
+    });
+
+    wafer.update('user_2389', '', function(data){
+      if(data.success) {
+        // ...
+      }
+    });
+
+    wafer.delete('user_2389', function(data){
+      if(data.success) {
+        // ...
+      }
     });
 
 will return the object associated with that key. To optimize for low latency, this object maybe cached on the client. Caching takes into account dirty objects, and replenishes them according to the consistency level the server is set to.
@@ -56,6 +72,8 @@ Balaji Soundararajan
 - resilient to server going down/reconnects save state (write to fs asynchly, don't affect server perf)
 
 - db adapter is modular and easy to extend
+
+- API should let you write if(data.success) { "success": "success" }
 
 ## TODO
 - shut down+restart server. error. GottoFix
