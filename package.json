@@ -28,7 +28,9 @@
   "main": "index.js",
   "dependencies": [
     "request",
-    "socket.io"
+    "socket.io",
+    "commander",
+    "colors"
   ],
   "scripts": {
     "test": "node tests/run.js"

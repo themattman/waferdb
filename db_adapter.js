@@ -1,5 +1,9 @@
-var mongo = require('./database.js')
-;
+//var mongo = require('./database.js')
+//;
+
+exports.setDB = function(db){
+  console.log(db);
+};
 
 /**
   * CRUD Operations *UNTESTED*
@@ -26,9 +30,9 @@ exports.insertIntoDatabase = function(key, value, cb){
     col.insert.limit(1).toArray(function(err, result){
 
       if(err) {
-        cb({'result': 'error'});
+        cb({'error': 'error'});
       } else {
-        cb({'result': 'success'});
+        cb({'success': 'success'});
       }
     });
   });
@@ -54,11 +58,11 @@ exports.readFromDatabase = function(key, cb){
     col.find({'_id': key}).limit(1).toArray(function(err, result){
 
       if(err) {
-        cb({'result': 'error'});
+        cb({'error': 'error'});
       } else {
 
         cb({
-          'result': 'success',
+          'success': 'success',
           'key': key,
           'value': result
         });
@@ -87,9 +91,9 @@ exports.updateDatabase = function(key, value, cb){
     col.update({'_id': key, 'value': value}).toArray(function(err, result){
 
       if(err) {
-        cb({'result': 'error'});
+        cb({'error': 'error'});
       } else {
-        cb({'result': 'success'});
+        cb({'success': 'success'});
       }
     });
   });
@@ -113,9 +117,9 @@ exports.deleteInDatabase = function(key, cb){
     col.insert({'_id': key}, function(err, result){
 
       if(err) {
-        cb({'result': 'error'});
+        cb({'error': 'error'});
       } else {
-        cb({'result': 'success'});
+        cb({'success': 'success'});
       }
     });
   });
