@@ -10,37 +10,7 @@ var io                 = require('socket.io').listen(9000)
   , config_file        = 'dbconfig.json'
 ;
 
-/**
-  * Set consistency level and config at startup
-  *
-  */
-program
-  .version('0.0.1')
-  .option('-f, --config', 'Config Filename')
-  .option('-c, --consistency [level]', 'Tunably Consistency Level')
-  .parse(process.argv);
-if(program.consistency) consistency_level = program.consistency;
-if(!program.config) console.log('Server running with default config file.'.yellow);
-console.log('Running server with consistency of ['.yellow, consistency_levels[consistency_level], ']'.yellow);
-/*fs.readdir(path.join(__dirname, "/../../"), function(err, d){
-  console.log(path.join(__dirname,"/../../"));
-});*/
-fs.readFile(config_file, 'utf-8', function(err, data){
-  if(err){throw err;}
-  filedata = JSON.parse(data);
-  switch(filedata.db) {
-    case 'mongo':
-      console.log('mongo', filedata.db);
-      
-      break;
-    case 'redis':
-      console.log(filedata.db);
-      break;
-    default:
-      console.log('default');
-      break;
-  }
-});
+init();
 
 io.sockets.on('connection', function(socket){
   console.log('connection established for WebSocket with wafer', socket.id);
@@ -137,7 +107,27 @@ function invalidate_caches(key, value, socket, cb){
 }
 
 function init(){
-  // Read config file
+  /**
+    * Set consistency level and config at startup
+    *
+    */
+  program
+    .version('0.0.1')
+    .option('-f, --config', 'Config Filename')
+    .option('-c, --consistency [level]', 'Tunably Consistency Level')
+    .parse(process.argv);
 
-  // 
+
+  if(program.consistency) consistency_level = program.consistency;
+  if(!program.config) console.log('Server running with default config file.'.yellow);
+
+  console.log('Running server with consistency of ['.yellow, consistency_levels[consistency_level], ']'.yellow);
+
+  // Setup options by reading in the dbconfig.json file
+  fs.readFile(config_file, 'utf-8', function(err, data){
+    if(err){throw err;}
+    
+    filedata = JSON.parse(data);
+    db.setupDB(filedata);
+  });
 }

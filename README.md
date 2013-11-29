@@ -45,6 +45,17 @@ Efficiency - A graph comparing the overhead of maintaining fresh objects in the 
 
 Scalability - Measure performance with N clients.
 
+## dbconfig.json
+
+  {
+    "db": "mongo",
+    "username": "yolo",
+    "password": "yolo",
+    "hostname": "yolo",
+    "port": "yolo",
+    "namespace": "yolo"
+  }
+
 ## tests
 
 We will have a `test` folder that utilizes tap `https://npmjs.org/package/tap`

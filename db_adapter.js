@@ -1,8 +1,19 @@
 //var mongo = require('./database.js')
 //;
 
-exports.setDB = function(db){
-  console.log(db);
+exports.setupDB = function(config){
+  console.log(config);
+  switch(config.db) {
+    case 'mongo':
+      console.log('mongo', config.db);
+      break;
+    case 'redis':
+      console.log(config.db);
+      break;
+    default:
+      console.log('default');
+      break;
+  }
 };
 
 /**
