@@ -1,2 +1,1 @@
-var Wafer = require('./wafer.js')
-;
+var Wafer = require('./wafer.js');

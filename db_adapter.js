@@ -1,26 +1,19 @@
-//var mongo = require('./database.js')
-//;
+var database;
 
-exports.setupDB = function(config){
-  console.log(config);
-  switch(config.db) {
+exports.setupDB = function(db_type, db_object){
+  console.log(db_type);
+  switch(db_type) {
     case 'mongo':
-      console.log('mongo', config.db);
+      database = db_object;
       break;
     case 'redis':
-      console.log(config.db);
+      database = {};
       break;
     default:
       console.log('default');
       break;
   }
 };
-
-/**
-  * CRUD Operations *UNTESTED*
-  *
-  */
-
 
 /**
   * Create
@@ -36,16 +29,13 @@ exports.setupDB = function(config){
   *
   */
 exports.insertIntoDatabase = function(key, value, cb){
-  mongo.db.collection('', function(err, col){
-    if(err){throw err;}
-    col.insert.limit(1).toArray(function(err, result){
+  database.insert({'_id': key, 'value': value}).toArray(function(err, result){
 
-      if(err) {
-        cb({'error': 'error'});
-      } else {
-        cb({'success': 'success'});
-      }
-    });
+    if(err) {
+      cb({'error': 'error'});
+    } else {
+      cb({'success': 'success'});
+    }
   });
 };
 
@@ -64,22 +54,19 @@ exports.insertIntoDatabase = function(key, value, cb){
   *
   */
 exports.readFromDatabase = function(key, cb){
-  mongo.db.collection('', function(err, col){
-    if(err){throw err;}
-    col.find({'_id': key}).limit(1).toArray(function(err, result){
+  database.find({'_id': key}).limit(1).toArray(function(err, result){
 
-      if(err) {
-        cb({'error': 'error'});
-      } else {
+    if(err) {
+      cb({'error': 'error'});
+    } else {
 
-        cb({
-          'success': 'success',
-          'key': key,
-          'value': result
-        });
+      cb({
+        'success': 'success',
+        'key': key,
+        'value': result
+      });
 
-      }
-    });
+    }
   });
 };
 
@@ -97,16 +84,13 @@ exports.readFromDatabase = function(key, cb){
   *
   */
 exports.updateDatabase = function(key, value, cb){
-  mongo.db.collection('', function(err, col){
-    if(err){throw err;}
-    col.update({'_id': key, 'value': value}).toArray(function(err, result){
+  database.update({'_id': key, 'value': value}).toArray(function(err, result){
 
-      if(err) {
-        cb({'error': 'error'});
-      } else {
-        cb({'success': 'success'});
-      }
-    });
+    if(err) {
+      cb({'error': 'error'});
+    } else {
+      cb({'success': 'success'});
+    }
   });
 };
 
@@ -123,15 +107,12 @@ exports.updateDatabase = function(key, value, cb){
   *
   */
 exports.deleteInDatabase = function(key, cb){
-  mongo.db.collection('', function(err, col){
-    if(err){throw err;}
-    col.insert({'_id': key}, function(err, result){
+  database.remove({'_id': key}, function(err, result){
 
-      if(err) {
-        cb({'error': 'error'});
-      } else {
-        cb({'success': 'success'});
-      }
-    });
+    if(err) {
+      cb({'error': 'error'});
+    } else {
+      cb({'success': 'success'});
+    }
   });
 };

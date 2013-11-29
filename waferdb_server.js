@@ -10,7 +10,7 @@ var io                 = require('socket.io').listen(9000)
   , config_file        = 'dbconfig.json'
 ;
 
-init();
+exports = init;
 
 io.sockets.on('connection', function(socket){
   console.log('connection established for WebSocket with wafer', socket.id);
@@ -106,7 +106,7 @@ function invalidate_caches(key, value, socket, cb){
   cb(); // placement of this depends on consistency level
 }
 
-function init(){
+function init(db_type, db_object){
   /**
     * Set consistency level and config at startup
     *
@@ -123,11 +123,5 @@ function init(){
 
   console.log('Running server with consistency of ['.yellow, consistency_levels[consistency_level], ']'.yellow);
 
-  // Setup options by reading in the dbconfig.json file
-  fs.readFile(config_file, 'utf-8', function(err, data){
-    if(err){throw err;}
-    
-    filedata = JSON.parse(data);
-    db.setupDB(filedata);
-  });
+  db.setupDB(db_type, db_object);
 }
