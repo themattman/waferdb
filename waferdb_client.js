@@ -119,6 +119,103 @@ var wafer = (function(){
       }
     });
   };
+  
+  
+    /**
+    * UPDATE:
+    *  goes to server to add the line
+    * Server could already have the line, in which case update the cache acordingly
+    */
+  /*  
+  API.update = function(key, cb){
+    console.log('client_update('+key+')');
+  
+    
+  */  
+      /**
+        * GET from server
+        *
+        */
+  /*      
+      socket.emit('update', { 'key': key });
+      socket.on('update_ack', function(data) {
+        console.log('#update_ack#');
+        console.log(data);
+
+        // Cache the retrieved value
+        writeToCache(key, data.value);
+
+        // return to user
+        cb(data);
+      });
+      socket.on('update_nack', function(data) {
+        console.log('#update_nack - key exists#');
+        console.log(data);
+
+        // Cache the retrieved value
+        writeToCache(key, data.value);
+
+        // return to user
+        cb(data);
+      });
+    
+  };
+  */
+
+
+ /**
+    * DELETE:
+    *  Deletes value from server
+    *  Deletes value from cache
+    *
+    */
+  /*  
+  API.delete = function(key, value, cb){
+    console.log('client_delete('+key+', '+value+')');
+
+    /**
+      * Delete in server
+      *
+      */
+    /*  
+    socket.emit('delete', { 'key': key, 'value': value });
+    socket.on('delete_ack', function(data) {
+      console.log('#delete_ack#');
+      console.log(data);
+
+      if(data.result === 'error') {
+
+        // return to user
+        cb({ 'result': 'error' });
+      } else {
+        if(inCache(key)) {
+          // Delete cache line after server's delete_ack
+          removeFromCache(key);
+        }
+
+        // return to user
+        cb({ 'result': 'success' });
+      }
+    });
+  };
+  
+*/
+
+/*
+// removeFromCache
+// Array Remove - By John Resig (MIT Licensed)
+Cache.remove = function(cache, from, to) {
+  var rest = cache.slice((to || from) + 1 || cache.length);
+  cache.length = from < 0 ? cache.length + from : from;
+  return cache.push.apply(cache, rest);
+};
+
+  function removeFromCache(key){
+    // remove from cache
+    cache.remove(key);
+  }
+
+*/
 
   return API;
 })();
