@@ -7,10 +7,9 @@ var io                 = require('socket.io').listen(9000)
   , colors             = require('colors')
   , fs                 = require('fs')
   , path               = require('path')
-  , config_file        = 'dbconfig.json'
 ;
 
-exports = init;
+exports.init = init;
 
 io.sockets.on('connection', function(socket){
   console.log('connection established for WebSocket with wafer', socket.id);
