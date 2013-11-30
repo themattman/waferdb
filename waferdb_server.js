@@ -95,6 +95,54 @@ io.sockets.on('connection', function(socket){
   });
 });
 
+//  /**
+//    * UPDATE
+//    *
+//    */
+//  socket.on('update', function(request){
+//    // 1. Log the get operation
+//    console.log('server_delete('+request.key+')', '+request.value+')');
+//
+//    // 2. Update the value to the database
+//    db.updateDatabase({ 'key': request.key, 'value': request.value }, function(db_response){
+//      if(db_response.result === 'error') {
+//        socket.emit('update_ack', { 'result': 'error' });
+//      } else {
+//        socket.emit('update_ack', db_response);
+//      }
+//    });
+//
+//    // 3. Invalidate the other caches
+//    invalidate_caches(request.key, request.value, socket, function(){
+//      console.log('done invalidating caches');
+//    });
+//  });
+//
+//  /**
+//    * DELETE
+//    *
+//    */
+//  socket.on('delete', function(request){
+//    // 1. Log the put operation
+//    console.log('server_delete('+request.key+')');
+//
+//    // 2. Write the value to the database
+//    db.deleteDatabase({ 'key': request.key }, function(db_response){
+//      if(request.result === 'error') {
+//        socket.emit('del_ack', { 'result': 'error' });
+//      } else {
+//        socket.emit('del_ack', db_response);
+//      }
+//    });
+//
+//    // 3. Invalidate the other caches
+//    invalidate_caches(request.key, request.value, socket, function(){
+//      console.log('done invalidating caches');
+//    });
+//  });
+//});
+
+
 function invalidate_caches(key, value, socket, cb){
   for(var i in server_cache[socket.id].keys) {
     if(server_cache[socket.id].keys[i] === key) {
