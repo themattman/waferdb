@@ -8,26 +8,6 @@ exports.setupDB = function(db_type, db_object){
   console.log(db_type);
 };
 
-function result_callback(err, result){
-  if(err) {
-    cb({'error': 'error'});
-  } else {
-    cb({'success': 'success'});
-  }
-}
-
-function read_callback(err, result){
-  if(err) {
-    cb({'error': 'error'});
-  } else {
-    cb({
-      'success': 'success',
-      'key': key,
-      'value': result
-    });
-  }
-}
-
 /**
   * Create
   *
@@ -45,11 +25,23 @@ exports.insertIntoDatabase = function(key, value, cb){
   switch(dbtype) {
     case 'mongodb':
       // insert/find/update/remove
-      database.insert({'_id': key, 'value': value}).toArray(result_callback);
+      database.insert({'_id': key, 'value': value}).toArray(function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({'success': 'success'});
+        }
+      });
       break;
     case 'redis':
       // set/get/set/del
-      database.set(key, value, result_callback);
+      database.set(key, value, function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({'success': 'success'});
+        }
+      });
       break;
     default:
       console.log('default');
@@ -75,11 +67,31 @@ exports.readFromDatabase = function(key, cb){
   switch(dbtype) {
     case 'mongodb':
       // insert/find/update/remove
-      database.find({'_id': key}).limit(1).toArray(read_callback);
+      database.find({'_id': key}).limit(1).toArray(function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({
+            'success': 'success',
+            'key': key,
+            'value': result
+          });
+        }
+      });
       break;
     case 'redis':
       // set/get/set/del
-      database.get(key, read_callback);
+      database.get(key, function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({
+            'success': 'success',
+            'key': key,
+            'value': result
+          });
+        }
+      });
       break;
     default:
       console.log('default');
@@ -104,11 +116,24 @@ exports.updateDatabase = function(key, value, cb){
   switch(dbtype) {
     case 'mongodb':
       // insert/find/update/remove
-      database.update({'_id': key, 'value': value}).toArray(result_callback);
+      database.update({'_id': key, 'value': value}).toArray(function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({'success': 'success'});
+        }
+      });
       break;
     case 'redis':
       // set/get/set/del
-      database.set(key, value, result_callback);
+      console.log(cb)
+      database.set(key, value, function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({'success': 'success'});
+        }
+      });
       break;
     default:
       console.log('default');
@@ -132,11 +157,23 @@ exports.deleteInDatabase = function(key, cb){
   switch(dbtype) {
     case 'mongodb':
       // insert/find/update/remove
-      database.remove({'_id': key}).toArray(result_callback);
+      database.remove({'_id': key}).toArray(function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({'success': 'success'});
+        }
+      });
       break;
     case 'redis':
       // set/get/set/del
-      database.del(key, result_callback);
+      database.del(key, function(err, result){
+        if(err) {
+          cb({'error': 'error'});
+        } else {
+          cb({'success': 'success'});
+        }
+      });
       break;
     default:
       console.log('default');

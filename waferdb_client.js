@@ -55,27 +55,64 @@ var wafer = (function(){
     cache[key] = value;
   }
 
+  function removeFromCache(key){
+    // remove from cache
+    delete cache[key];
+  }
+
   /**
-    * GET:
+    * CREATE:
+    *  writes value to server
+    *  writes value to cache
+    *
+    */
+  API.create = function(key, value, cb){
+    console.log('client_create('+key+', '+value+')');
+
+    /**
+      * CREATE to server
+      *
+      */
+    socket.emit('create', { 'key': key, 'value': value });
+    socket.on('create_ack', function(data) {
+      console.log('#create_ack#');
+      console.log(data);
+
+      if(data.success) {
+        if(inCache(key)) {
+          // Modify cache after server's create_ack
+          writeToCache(key, value);
+        }
+      }
+
+      // return to user
+      cb(data);
+    });
+  };
+
+  /**
+    * READ:
     *  responds from cache
     *  otherwise goes to server
     *
     */
-  API.get = function(key, cb){
-    console.log('client_get('+key+')');
+  API.read = function(key, cb){
+    console.log('client_read('+key+')');
 
     if(!inCache(key)) {
       /**
-        * GET from server
+        * READ from server
         *
         */
-      socket.emit('get', { 'key': key });
-      socket.on('get_ack', function(data) {
-        console.log('#get_ack#');
+      socket.emit('read', { 'key': key });
+      socket.on('read_ack', function(data) {
+        console.log('#read_ack#');
         console.log(data);
 
-        // Cache the retrieved value
-        writeToCache(key, data.value);
+        if(data.success) {
+          // Cache the retrieved value
+          writeToCache(key, data.value);
+        }
 
         // return to user
         cb(data);
@@ -85,82 +122,36 @@ var wafer = (function(){
       cb(getFromCache(key));
     }
   };
-
+  
   /**
-    * PUT:
-    *  writes value to server
-    *  writes value to cache
-    *
-    */
-  API.put = function(key, value, cb){
-    console.log('client_put('+key+', '+value+')');
-
-    /**
-      * PUT to server
-      *
-      */
-    socket.emit('put', { 'key': key, 'value': value });
-    socket.on('put_ack', function(data) {
-      console.log('#put_ack#');
-      console.log(data);
-
-      if(data.result === 'error') {
-
-        // return to user
-        cb({ 'result': 'error' });
-      } else {
-        if(inCache(key)) {
-          // Modify cache after server's put_ack
-          writeToCache(key, value);
-        }
-
-        // return to user
-        cb({ 'result': 'success' });
-      }
-    });
-  };
-  
-  
-    /**
     * UPDATE:
     *  goes to server to add the line
     * Server could already have the line, in which case update the cache acordingly
-    */
-  /*  
-  API.update = function(key, cb){
-    console.log('client_update('+key+')');
+    */  
+  API.update = function(key, value, cb){
+    console.log('client_update('+key+', '+value+')');
   
-    
-  */  
       /**
         * GET from server
         *
         */
-  /*      
-      socket.emit('update', { 'key': key });
+      socket.emit('update', { 'key': key, 'value': value });
       socket.on('update_ack', function(data) {
         console.log('#update_ack#');
         console.log(data);
 
-        // Cache the retrieved value
-        writeToCache(key, data.value);
-
-        // return to user
-        cb(data);
-      });
-      socket.on('update_nack', function(data) {
-        console.log('#update_nack - key exists#');
-        console.log(data);
-
-        // Cache the retrieved value
-        writeToCache(key, data.value);
+        if(data.success) {
+          if(inCache(key)) {
+            // Cache the retrieved value
+            writeToCache(key, data.value);
+          }
+        }
 
         // return to user
         cb(data);
       });
     
   };
-  */
 
 
  /**
@@ -169,53 +160,28 @@ var wafer = (function(){
     *  Deletes value from cache
     *
     */
-  /*  
-  API.delete = function(key, value, cb){
-    console.log('client_delete('+key+', '+value+')');
+  API.delete = function(key, cb){
+    console.log('client_delete('+key+')');
 
     /**
       * Delete in server
       *
       */
-    /*  
-    socket.emit('delete', { 'key': key, 'value': value });
+    socket.emit('delete', { 'key': key });
     socket.on('delete_ack', function(data) {
       console.log('#delete_ack#');
       console.log(data);
 
-      if(data.result === 'error') {
-
-        // return to user
-        cb({ 'result': 'error' });
-      } else {
+      if(data.success) {
         if(inCache(key)) {
           // Delete cache line after server's delete_ack
           removeFromCache(key);
         }
-
-        // return to user
-        cb({ 'result': 'success' });
       }
+
+      cb(data);
     });
   };
-  
-*/
-
-/*
-// removeFromCache
-// Array Remove - By John Resig (MIT Licensed)
-Cache.remove = function(cache, from, to) {
-  var rest = cache.slice((to || from) + 1 || cache.length);
-  cache.length = from < 0 ? cache.length + from : from;
-  return cache.push.apply(cache, rest);
-};
-
-  function removeFromCache(key){
-    // remove from cache
-    cache.remove(key);
-  }
-
-*/
 
   return API;
 })();

@@ -25,16 +25,20 @@ io.sockets.on('connection', function(socket){
     * Disconnect (default)
     *
     */
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function(data){
     console.log('disconnect');
     setTimeout(function(){
       console.log('disconnect timeout');
-      if(!reconnected) {
+      console.log(server_cache);
+      if(!server_cache[socket.id].reconnected) {
         delete server_cache[socket.id];
+        console.log('deleted');
       } else {
         server_cache[socket.id].reconnected = false;
+        console.log('grace period');
       }
-    }, 60000); // gives client 60 seconds to reconnect
+      console.log(server_cache);
+    }, 2000); // gives client 60 seconds to reconnect
   });
 
   /**
@@ -45,25 +49,40 @@ io.sockets.on('connection', function(socket){
     console.log('reconnect', socket.id);
     console.log(data);
     if(data && data.socket_id) {
-      server_cache.id[data.socket_id].reconnected = true;
+      server_cache[data.socket_id].reconnected = true;
     }
   });
 
   /**
-    * GET
+    * CREATE
     *
     */
-  socket.on('get', function(request){
+  socket.on('create', function(request){
+    // 1. Log the put operation
+    console.log('server_create('+request.key+', '+request.value+')');
+
+    // 2. Write the value to the database
+    db.insertIntoDatabase(request.key, request.value, function(db_response){
+      socket.emit('create_ack', db_response);
+    });
+
+    // 3. Invalidate the other caches
+    invalidate_caches(request.key, request.value, socket, function(){
+      console.log('done invalidating caches');
+    });
+  });
+
+  /**
+    * READ
+    *
+    */
+  socket.on('read', function(request){
     // 1. Log the get operation
-    console.log('server_get('+request.key+')');
+    console.log('server_read('+request.key+')');
 
     // 2. Read the value from the database
-    db.readFromDatabase({ 'key': request.key }, function(db_response){
-      if(db_response.result === 'error') {
-        socket.emit('get_ack', { 'result': 'error' });
-      } else {
-        socket.emit('get_ack', db_response);
-      }
+    db.readFromDatabase(request.key, function(db_response){
+      socket.emit('read_ack', db_response);
     });
 
     // 3. Update server cache when the client get's a key
@@ -72,20 +91,35 @@ io.sockets.on('connection', function(socket){
   });
 
   /**
-    * PUT
+    * UPDATE
     *
     */
-  socket.on('put', function(request){
+  socket.on('update', function(request){
+    // 1. Log the get operation
+    console.log('server_update('+request.key+', '+request.value+')');
+
+    // 2. Update the value to the database
+    db.updateDatabase(request.key, request.value, function(db_response){
+      socket.emit('update_ack', db_response);
+    });
+
+    // 3. Invalidate the other caches
+    invalidate_caches(request.key, request.value, socket, function(){
+      console.log('done invalidating caches');
+    });
+  });
+
+  /**
+    * DELETE
+    *
+    */
+  socket.on('delete', function(request){
     // 1. Log the put operation
-    console.log('server_put('+request.key+', '+request.value+')');
+    console.log('server_delete('+request.key+')');
 
     // 2. Write the value to the database
-    db.updateDatabase({ 'key': request.key, 'value': request.value }, function(db_response){
-      if(request.result === 'error') {
-        socket.emit('put_ack', { 'result': 'error' });
-      } else {
-        socket.emit('put_ack', db_response);
-      }
+    db.deleteInDatabase(request.key, function(db_response){
+      socket.emit('delete_ack', db_response);
     });
 
     // 3. Invalidate the other caches
@@ -94,54 +128,6 @@ io.sockets.on('connection', function(socket){
     });
   });
 });
-
-//  /**
-//    * UPDATE
-//    *
-//    */
-//  socket.on('update', function(request){
-//    // 1. Log the get operation
-//    console.log('server_delete('+request.key+')', '+request.value+')');
-//
-//    // 2. Update the value to the database
-//    db.updateDatabase({ 'key': request.key, 'value': request.value }, function(db_response){
-//      if(db_response.result === 'error') {
-//        socket.emit('update_ack', { 'result': 'error' });
-//      } else {
-//        socket.emit('update_ack', db_response);
-//      }
-//    });
-//
-//    // 3. Invalidate the other caches
-//    invalidate_caches(request.key, request.value, socket, function(){
-//      console.log('done invalidating caches');
-//    });
-//  });
-//
-//  /**
-//    * DELETE
-//    *
-//    */
-//  socket.on('delete', function(request){
-//    // 1. Log the put operation
-//    console.log('server_delete('+request.key+')');
-//
-//    // 2. Write the value to the database
-//    db.deleteDatabase({ 'key': request.key }, function(db_response){
-//      if(request.result === 'error') {
-//        socket.emit('del_ack', { 'result': 'error' });
-//      } else {
-//        socket.emit('del_ack', db_response);
-//      }
-//    });
-//
-//    // 3. Invalidate the other caches
-//    invalidate_caches(request.key, request.value, socket, function(){
-//      console.log('done invalidating caches');
-//    });
-//  });
-//});
-
 
 function invalidate_caches(key, value, socket, cb){
   for(var i in server_cache[socket.id].keys) {
