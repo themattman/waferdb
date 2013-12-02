@@ -28,6 +28,18 @@ var wafer = (function(){
   socket.on('disconnect', function(){
     console.log('disconnected');
   });
+  socket.on('invalidate', function(data){
+    console.group('INVALIDATE');
+    console.log(data);
+    if(inCache(data.key)) {
+      if(!data.value) {
+        removeFromCache(data.key);
+      } else {
+        writeToCache(data.key, data.value);
+      }
+    }
+    console.groupEnd();
+  });
   socket.on('error', function(data){
     console.log('ERROR!');
     console.log(data);
@@ -67,7 +79,8 @@ var wafer = (function(){
     *
     */
   API.create = function(key, value, cb){
-    console.log('client_create('+key+', '+value+')');
+    console.group('CREATE');
+    console.log('waferdb_client.create('+key+', '+value+')');
 
     /**
       * CREATE to server
@@ -75,8 +88,8 @@ var wafer = (function(){
       */
     socket.emit('create', { 'key': key, 'value': value });
     socket.on('create_ack', function(data) {
-      console.log('#create_ack#');
-      console.log(data);
+      console.log('waferdb_client.create_ack', data);
+      console.groupEnd();
 
       if(data.success) {
         if(inCache(key)) {
@@ -97,7 +110,8 @@ var wafer = (function(){
     *
     */
   API.read = function(key, cb){
-    console.log('client_read('+key+')');
+    console.group('READ');
+    console.log('waferdb_client.read('+key+')');
 
     if(!inCache(key)) {
       /**
@@ -106,8 +120,8 @@ var wafer = (function(){
         */
       socket.emit('read', { 'key': key });
       socket.on('read_ack', function(data) {
-        console.log('#read_ack#');
-        console.log(data);
+        console.log('waferdb_client.read_ack', data);
+        console.groupEnd();
 
         if(data.success) {
           // Cache the retrieved value
@@ -129,7 +143,8 @@ var wafer = (function(){
     * Server could already have the line, in which case update the cache acordingly
     */  
   API.update = function(key, value, cb){
-    console.log('client_update('+key+', '+value+')');
+    console.group('UPDATE');
+    console.log('waferdb_client.update('+key+', '+value+')');
   
       /**
         * GET from server
@@ -137,8 +152,8 @@ var wafer = (function(){
         */
       socket.emit('update', { 'key': key, 'value': value });
       socket.on('update_ack', function(data) {
-        console.log('#update_ack#');
-        console.log(data);
+        console.log('waferdb_client.update_ack', data);
+        console.groupEnd();
 
         if(data.success) {
           if(inCache(key)) {
@@ -161,7 +176,8 @@ var wafer = (function(){
     *
     */
   API.delete = function(key, cb){
-    console.log('client_delete('+key+')');
+    console.group('DELETE');
+    console.log('waferdb_client.delete('+key+')');
 
     /**
       * Delete in server
@@ -169,8 +185,8 @@ var wafer = (function(){
       */
     socket.emit('delete', { 'key': key });
     socket.on('delete_ack', function(data) {
-      console.log('#delete_ack#');
-      console.log(data);
+      console.log('waferdb_client.delete_ack', data);
+      console.groupEnd();
 
       if(data.success) {
         if(inCache(key)) {
