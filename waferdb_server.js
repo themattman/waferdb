@@ -15,6 +15,7 @@ io.sockets.on('connection', function(socket){
   console.log('connection established for WebSocket with wafer', socket.id);
   server_cache[socket.id] = {
     'keys': [],
+    'socket': socket,
     'reconnected': false
   };
 
@@ -48,8 +49,10 @@ io.sockets.on('connection', function(socket){
   socket.on('reconnect', function(data){
     console.log('reconnect', socket.id);
     console.log(data);
-    if(data && data.socket_id) {
+    if(data && data.socket_id && server_cache[data.socket_id]) {
       server_cache[data.socket_id].reconnected = true;
+    } else {
+      console.log('reconnect failed: server_cache didn\'t have the socket_id');
     }
   });
 
@@ -63,12 +66,19 @@ io.sockets.on('connection', function(socket){
 
     // 2. Write the value to the database
     db.insertIntoDatabase(request.key, request.value, function(db_response){
-      socket.emit('create_ack', db_response);
-    });
 
-    // 3. Invalidate the other caches
-    invalidate_caches(request.key, request.value, socket, function(){
-      console.log('done invalidating caches');
+      // 3. Invalidate the other caches
+      invalidate_caches(request.key, request.value, socket, function(){
+        console.log('done invalidating caches');
+
+        // 4. Insert into server_cache
+        console.log(server_cache);
+        server_cache[socket.id].keys.push(request.key);
+        console.log(server_cache);
+
+        // 5. Confirm write to client
+        socket.emit('create_ack', db_response);
+      });
     });
   });
 
@@ -103,6 +113,9 @@ io.sockets.on('connection', function(socket){
       socket.emit('update_ack', db_response);
     });
 
+    // 3. Update the server_cache
+
+
     // 3. Invalidate the other caches
     invalidate_caches(request.key, request.value, socket, function(){
       console.log('done invalidating caches');
@@ -130,10 +143,12 @@ io.sockets.on('connection', function(socket){
 });
 
 function invalidate_caches(key, value, socket, cb){
-  for(var i in server_cache[socket.id].keys) {
-    if(server_cache[socket.id].keys[i] === key) {
-      socket.emit('invalidate', { 'key': key, 'value': value });
-      // socket.on('invalidate_done', function(){});
+  console.log('INVALIDATE PRINTOUT');
+  for(var i in server_cache) {
+    var key_loc = server_cache[i].keys.indexOf(key);
+    if(key_loc > -1 && server_cache[i].socket !== socket) {
+      console.log('invalidate', server_cache[i].socket.id, '| key:', key, 'value:', value);
+      server_cache[i].socket.emit('invalidate', { 'key': key, 'value': value });
     }
   }
   cb(); // placement of this depends on consistency level

@@ -86,3 +86,11 @@ Balaji Soundararajan
 
 ## TODO
 - shut down+restart server. error. GottoFix
+
+- invalidate caches
+- emit to all sockets besides the current one (rework invalidate_caches based on chat room example)
+
+VISUALS
+- performance graphs
+- view of the cache
+- buttons to send data
