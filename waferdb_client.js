@@ -132,6 +132,7 @@ var wafer = (function(){
         cb(data);
       });
     } else {
+      console.groupEnd();
       // Retrieve from cache & return to user
       cb(getFromCache(key));
     }
