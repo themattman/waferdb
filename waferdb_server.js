@@ -88,7 +88,6 @@ io.sockets.on('connection', function(socket){
 
         // 4. Insert into server_cache
         if(server_cache[socket.id].keys.indexOf(request.key) === -1) {
-          console.log('created!');
           server_cache[socket.id].keys.push(request.key);
         }
 
@@ -177,10 +176,10 @@ function invalidate_caches(key, value, socket, delete_flag, cb){
 function writeBackupToDisk(){
   console.log('\n\nwriteBackupToDisk fired');
 
-  //console.log('--');
-  //console.log(server_cache);
+  /*console.log('--');
+  console.log(server_cache);
   console.log('--');
-  console.log(snapshot_length);
+  console.log(snapshot_length);*/
 
   // Don't write to disk if there are no changes
   if(server_cache && snapshot_length !== Object.keys(server_cache).length) {
@@ -201,7 +200,6 @@ function writeBackupToDisk(){
       console.log('It\'s saved!');
     });
   } else {
-    //console.log(server_cache);
     console.log('No updates to server_cache to save to disk.');
   }
 }
@@ -212,7 +210,6 @@ function readBackupFromDisk() {
       console.log('Reading in the server_cache from disk.');
       var data = fs.readFileSync(backupFileName, 'utf8');
       server_cache = JSON.parse(data);
-      snapshot_length = Object.keys(server_cache).length;
 
       console.log(server_cache);
       console.log('Done reading in data');
