@@ -8,10 +8,10 @@ var io                 = require('socket.io').listen(9000).set('log level', 1) /
   , fs                 = require('fs')
   , path               = require('path')
   , fileName           = 'waferdb_metadata.js'
-  , backupFileName   = path.join(__dirname, fileName)
+  , backupFileName     = path.join(__dirname, fileName)
+  , snapshot_length    = 0
   , backup_write_interval = 10000
-  , basic_obj = { 'mykey': 'myval' }
-  , backup_snapshot    = {}
+  , grace_period       = 10000
 ;
 
 exports.init = init;
@@ -41,10 +41,11 @@ io.sockets.on('connection', function(socket){
         console.log('deleted');
       } else {
         server_cache[socket.id].reconnected = false;
+        console.log(socket.id);
         console.log('reconnected during grace period'); //buggy
       }
 
-    }, 10000); // gives client 60 seconds to reconnect
+    }, grace_period); // gives client 60 seconds to reconnect
   });
 
   /**
@@ -58,6 +59,9 @@ io.sockets.on('connection', function(socket){
       server_cache[ socket.id ].keys = server_cache[ data.socket_id ].keys;
       server_cache[ socket.id ].socket = socket;
       server_cache[ socket.id ].reconnected = true;
+      setTimeout(function(){
+        server_cache[socket.id].reconnected = false;
+      }, grace_period);
 
       // Delete the old cache id
       delete server_cache[ data.socket_id ];
@@ -83,7 +87,9 @@ io.sockets.on('connection', function(socket){
       invalidate_caches(request.key, request.value, socket, false, function(){
 
         // 4. Insert into server_cache
-        server_cache[socket.id].keys.push(request.key);
+        if(!server_cache[socket.id].keys.indexOf(request.key)) {
+          server_cache[socket.id].keys.push(request.key);
+        }
 
         // 5. Confirm write to client
         socket.emit('create_ack', db_response);
@@ -170,19 +176,25 @@ function invalidate_caches(key, value, socket, delete_flag, cb){
 function writeBackupToDisk(){
   console.log('\n\nwriteBackupToDisk fired');
 
-  //check if server_cache is empty. if empty, don't write
-  if(server_cache && backup_snapshot !== server_cache) {
-    backup_snapshot = server_cache;
+  //console.log('--');
+  //console.log(server_cache);
+  console.log('--');
+  console.log(snapshot_length);
+
+  // Don't write to disk if there are no changes
+  if(server_cache && snapshot_length !== Object.keys(server_cache).length) {
+    snapshot_length = Object.keys(server_cache).length;
+
+    // Create and fill a version of the server_cache without the socket objects
+    // (JSON.stringify won't let deal with self-referencing objects like socket)
     var server_cache_backup = {};
-    var server_cache_backup_size = 0;
     for(var i in server_cache) {
       server_cache_backup[i] = {
         'keys': server_cache[i].keys,
         'reconnected': server_cache[i].reconnected
       };
-      server_cache_backup_size++;
     }
-    console.log('Writing the file (' + server_cache_backup_size + ')... ' + backupFileName);
+    console.log('Writing the file (' + Object.keys(server_cache_backup).length + ')... ' + backupFileName);
     fs.writeFile(backupFileName, JSON.stringify(server_cache_backup), function(err) {
       if(err){throw err;}
       console.log('It\'s saved!');
@@ -198,8 +210,11 @@ function readBackupFromDisk() {
       console.log('Reading in the server_cache from disk.');
       var data = fs.readFileSync(backupFileName, 'utf8');
       server_cache = JSON.parse(data);
+      snapshot_length = Object.keys(server_cache).length;
+
       console.log(server_cache);
       console.log('Done reading in data');
+
       setTimeout(function(){
         for(var i in server_cache) {
           if(!server_cache[i].socket) {
