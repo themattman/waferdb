@@ -87,7 +87,8 @@ io.sockets.on('connection', function(socket){
       invalidate_caches(request.key, request.value, socket, false, function(){
 
         // 4. Insert into server_cache
-        if(!server_cache[socket.id].keys.indexOf(request.key)) {
+        if(server_cache[socket.id].keys.indexOf(request.key) === -1) {
+          console.log('created!');
           server_cache[socket.id].keys.push(request.key);
         }
 
@@ -131,7 +132,7 @@ io.sockets.on('connection', function(socket){
     invalidate_caches(request.key, request.value, socket, false, function(){
 
       // 4. Update the server_cache (upsert)
-      if(!server_cache[socket.id].keys.indexOf(request.key)) {
+      if(server_cache[socket.id].keys.indexOf(request.key) === -1) {
         server_cache[socket.id].keys.push(request.key);
       }
     });
@@ -151,7 +152,7 @@ io.sockets.on('connection', function(socket){
     });
 
     // 3. Invalidate the other caches
-    invalidate_caches(request.key, request.value, socket, true, function(){});
+    invalidate_caches(request.key, request.value, socket.id, true, function(){});
   });
 });
 
@@ -160,7 +161,7 @@ function invalidate_caches(key, value, socket, delete_flag, cb){
     // Do a safety check on the "keys" object
     if(server_cache[i].keys) {
       var key_loc = server_cache[i].keys.indexOf(key);
-      if(key_loc > -1 && server_cache[i].socket && server_cache[i].socket !== socket) {
+      if(key_loc > -1 && server_cache[i].socket && server_cache[i].socket.id != socket.id) {
         console.log('invalidate', server_cache[i].socket.id, '| key:', key, 'value:', value);
         if(delete_flag) {
           server_cache[i].socket.emit('invalidate', { 'key': key });
@@ -200,6 +201,7 @@ function writeBackupToDisk(){
       console.log('It\'s saved!');
     });
   } else {
+    //console.log(server_cache);
     console.log('No updates to server_cache to save to disk.');
   }
 }
