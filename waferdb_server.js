@@ -11,6 +11,7 @@ var io                 = require('socket.io').listen(9000).set('log level', 1) /
   , backupFileName   = path.join(__dirname, fileName)
   , backup_write_interval = 10000
   , basic_obj = { 'mykey': 'myval' }
+  , backup_snapshot    = {}
 ;
 
 exports.init = init;
@@ -23,10 +24,6 @@ io.sockets.on('connection', function(socket){
     'reconnected': false
   };
 
-  //console.log(JSON.stringify(socket));
-
-  //console.log(JSON.stringify({server_cache[socket_id]));
-
   // Send the client it's id so that it can re-establish its connection if broken
   socket.emit('get_connected_id', { 'socket_id': socket.id });
 
@@ -38,15 +35,15 @@ io.sockets.on('connection', function(socket){
     console.log('disconnect');
     setTimeout(function(){
       console.log('disconnect timeout');
-      //console.log(server_cache);
+
       if(!server_cache[socket.id].reconnected) {
         delete server_cache[socket.id];
         console.log('deleted');
       } else {
         server_cache[socket.id].reconnected = false;
-        console.log('reconnected during grace period');
+        console.log('reconnected during grace period'); //buggy
       }
-      console.log(server_cache);
+
     }, 10000); // gives client 60 seconds to reconnect
   });
 
@@ -56,12 +53,12 @@ io.sockets.on('connection', function(socket){
     */
   socket.on('reconnect', function(data){
     console.log('reconnect -- new[' + socket.id + '] old[' + data.socket_id + ']');
-    console.log(data);
     if(data && data.socket_id && server_cache[data.socket_id]) {
       // Create cache at new id
       server_cache[ socket.id ].keys = server_cache[ data.socket_id ].keys;
       server_cache[ socket.id ].socket = socket;
       server_cache[ socket.id ].reconnected = true;
+
       // Delete the old cache id
       delete server_cache[ data.socket_id ];
 
@@ -69,7 +66,6 @@ io.sockets.on('connection', function(socket){
       console.log('reconnect failed: server_cache didn\'t have the socket_id');
     }
 
-    console.log(server_cache);
   });
 
   /**
@@ -85,12 +81,9 @@ io.sockets.on('connection', function(socket){
 
       // 3. Invalidate the other caches
       invalidate_caches(request.key, request.value, socket, false, function(){
-        //console.log('done invalidating caches');
 
         // 4. Insert into server_cache
-        console.log(server_cache);
         server_cache[socket.id].keys.push(request.key);
-        console.log(server_cache);
 
         // 5. Confirm write to client
         socket.emit('create_ack', db_response);
@@ -112,7 +105,6 @@ io.sockets.on('connection', function(socket){
     });
 
     // 3. Update server cache when the client get's a key
-    // Saving on time? This should execute during db I/O
     server_cache[socket.id].keys.push(request.key);
   });
 
@@ -129,12 +121,13 @@ io.sockets.on('connection', function(socket){
       socket.emit('update_ack', db_response);
     });
 
-    // 3. Update the server_cache
-
-
     // 3. Invalidate the other caches
     invalidate_caches(request.key, request.value, socket, false, function(){
-      //console.log('done invalidating caches');
+
+      // 4. Update the server_cache (upsert)
+      if(!server_cache[socket.id].keys.indexOf(request.key)) {
+        server_cache[socket.id].keys.push(request.key);
+      }
     });
   });
 
@@ -152,9 +145,7 @@ io.sockets.on('connection', function(socket){
     });
 
     // 3. Invalidate the other caches
-    invalidate_caches(request.key, request.value, socket, true, function(){
-      //console.log('done invalidating caches');
-    });
+    invalidate_caches(request.key, request.value, socket, true, function(){});
   });
 });
 
@@ -180,7 +171,8 @@ function writeBackupToDisk(){
   console.log('\n\nwriteBackupToDisk fired');
 
   //check if server_cache is empty. if empty, don't write
-  if(server_cache) {
+  if(server_cache && backup_snapshot !== server_cache) {
+    backup_snapshot = server_cache;
     var server_cache_backup = {};
     var server_cache_backup_size = 0;
     for(var i in server_cache) {
@@ -195,6 +187,8 @@ function writeBackupToDisk(){
       if(err){throw err;}
       console.log('It\'s saved!');
     });
+  } else {
+    console.log('No updates to server_cache to save to disk.');
   }
 }
 
