@@ -85,10 +85,10 @@ Balaji Soundararajan
 - API should let you write if(data.success) { "success": "success" }
 
 ## TODO
-- shut down+restart server. error. GottoFix
-
-- invalidate caches
-- emit to all sockets besides the current one (rework invalidate_caches based on chat room example)
+- don't invalidate cache of sender on delete
+- ensure mongo integration
+- cloud mongo integration
+- pull/push changes
 
 VISUALS
 - performance graphs

@@ -25,7 +25,7 @@ exports.insertIntoDatabase = function(key, value, cb){
   switch(dbtype) {
     case 'mongodb':
       // insert/find/update/remove
-      database.insert({'_id': key, 'value': value}).toArray(function(err, result){
+      database.insert({'_id': key, 'value': value}, function(err, result){
         if(err) {
           cb({'error': 'error'});
         } else {
@@ -74,7 +74,7 @@ exports.readFromDatabase = function(key, cb){
           cb({
             'success': 'success',
             'key': key,
-            'value': result
+            'value': result[0].value
           });
         }
       });
@@ -116,7 +116,7 @@ exports.updateDatabase = function(key, value, cb){
   switch(dbtype) {
     case 'mongodb':
       // insert/find/update/remove
-      database.update({'_id': key, 'value': value}).toArray(function(err, result){
+      database.update({'_id': key}, {'value': value}, function(err, result){
         if(err) {
           cb({'error': 'error'});
         } else {
@@ -126,7 +126,6 @@ exports.updateDatabase = function(key, value, cb){
       break;
     case 'redis':
       // set/get/set/del
-      console.log(cb)
       database.set(key, value, function(err, result){
         if(err) {
           cb({'error': 'error'});
@@ -157,7 +156,7 @@ exports.deleteInDatabase = function(key, cb){
   switch(dbtype) {
     case 'mongodb':
       // insert/find/update/remove
-      database.remove({'_id': key}).toArray(function(err, result){
+      database.remove({'_id': key}, function(err, result){
         if(err) {
           cb({'error': 'error'});
         } else {
