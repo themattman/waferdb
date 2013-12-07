@@ -89,6 +89,10 @@ Balaji Soundararajan
 - ensure mongo integration
 - cloud mongo integration
 - pull/push changes
+- CRUD
+  - deleting non-existant keys
+  - alert on failure not success
+  - update/insert empty key (don't allow)
 
 VISUALS
 - performance graphs

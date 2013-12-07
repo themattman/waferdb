@@ -5,6 +5,7 @@ var wafer = (function(){
     , API       = {}
     , cache     = {}
     , socket_id = null
+    , demo      = true
   ;
 
   /**
@@ -13,9 +14,13 @@ var wafer = (function(){
     */
   socket.on('connecting', function(){
     console.log('connecting');
+    $('#status').attr('fill', 'yellow');
+    d3.select("#status").style("fill", 'yellow');
   });
   socket.on('connect', function(){
     console.log('connected');
+    $('#status').attr('fill', 'green');
+    d3.select("#status").style("fill", 'green');
   });
   socket.on('get_connected_id', function(data){
     console.log('get_connected_id', data);
@@ -24,18 +29,27 @@ var wafer = (function(){
   socket.on('reconnect', function(){
     console.log('reconnected');
     socket.emit('reconnect', { 'socket_id': socket_id });
+    //$('#status').attr('fill', 'yellow');
+    d3.select("#status").style("fill", 'yellow');
   });
   socket.on('disconnect', function(){
     console.log('disconnected');
+    $('#status').attr('fill', 'red');
+    d3.select("#status").style("fill", 'red');
   });
   socket.on('invalidate', function(data){
     console.group('INVALIDATE');
     console.log(data);
     if(inCache(data.key)) {
       if(!data.value) {
+        console.log('removing from cache');
         removeFromCache(data.key);
       } else {
         writeToCache(data.key, data.value);
+      }
+
+      if(demo) {
+        $('.data-tbody #'+data.key).text(data.value);
       }
     }
     console.groupEnd();
@@ -65,11 +79,19 @@ var wafer = (function(){
   function writeToCache(key, value){
     // write to the cache
     cache[key] = value;
+    console.log('writeToCache');
+    if($('.row-'+key).length > 0) {
+      console.log(value);
+      $('.row-'+key)[0].lastChild.innerHTML = value
+    } else {
+      $('.data-tbody').append('<tr class="row-'+key+'"><td>'+key+'</td><td>'+value+'</td></tr>');
+    }
   }
 
   function removeFromCache(key){
     // remove from cache
     delete cache[key];
+    $('.row-'+key).remove();
   }
 
   /**
@@ -81,26 +103,27 @@ var wafer = (function(){
   API.create = function(key, value, cb){
     console.group('CREATE');
     console.log('waferdb_client.create('+key+', '+value+')');
+    if(!key) {
+      cb({'error': 'empty key provided'});
+    } else {
+      /**
+        * CREATE to server
+        *
+        */
+      socket.emit('create', { 'key': key, 'value': value });
+      socket.on('create_ack', function(data) {
+        console.log('waferdb_client.create_ack', data);
+        console.groupEnd();
 
-    /**
-      * CREATE to server
-      *
-      */
-    socket.emit('create', { 'key': key, 'value': value });
-    socket.on('create_ack', function(data) {
-      console.log('waferdb_client.create_ack', data);
-      console.groupEnd();
-
-      if(data.success) {
-        if(inCache(key)) {
+        if(data.success) {
           // Modify cache after server's create_ack
           writeToCache(key, value);
         }
-      }
 
-      // return to user
-      cb(data);
-    });
+        // return to user
+        cb(data);
+      });
+    }
   };
 
   /**
@@ -112,8 +135,9 @@ var wafer = (function(){
   API.read = function(key, cb){
     console.group('READ');
     console.log('waferdb_client.read('+key+')');
-
-    if(!inCache(key)) {
+    if(!key) {
+      cb({'error': 'empty key provided'});
+    } else if(!inCache(key)) {
       /**
         * READ from server
         *
@@ -146,7 +170,9 @@ var wafer = (function(){
   API.update = function(key, value, cb){
     console.group('UPDATE');
     console.log('waferdb_client.update('+key+', '+value+')');
-  
+    if(!key) {
+      cb({'error': 'empty key provided'});
+    } else {
       /**
         * GET from server
         *
@@ -157,15 +183,14 @@ var wafer = (function(){
         console.groupEnd();
 
         if(data.success) {
-          if(inCache(key)) {
-            // Cache the retrieved value
-            writeToCache(key, data.value);
-          }
+          // Cache the retrieved value
+          writeToCache(key, value);
         }
 
         // return to user
         cb(data);
       });
+    }
     
   };
 
@@ -179,25 +204,28 @@ var wafer = (function(){
   API.delete = function(key, cb){
     console.group('DELETE');
     console.log('waferdb_client.delete('+key+')');
+    if(!key) {
+      cb({'error': 'empty key provided'});
+    } else {
+      /**
+        * Delete in server
+        *
+        */
+      socket.emit('delete', { 'key': key });
+      socket.on('delete_ack', function(data) {
+        console.log('waferdb_client.delete_ack', data);
+        console.groupEnd();
 
-    /**
-      * Delete in server
-      *
-      */
-    socket.emit('delete', { 'key': key });
-    socket.on('delete_ack', function(data) {
-      console.log('waferdb_client.delete_ack', data);
-      console.groupEnd();
-
-      if(data.success) {
-        if(inCache(key)) {
-          // Delete cache line after server's delete_ack
-          removeFromCache(key);
+        if(data.success) {
+          if(inCache(key)) {
+            // Delete cache line after server's delete_ack
+            removeFromCache(key);
+          }
         }
-      }
 
-      cb(data);
-    });
+        cb(data);
+      });
+    }
   };
 
   return API;
