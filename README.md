@@ -77,8 +77,8 @@ Balaji Soundararajan
 
 
 
-- clean up DB & README for npm
-- npm publish
+- //clean up DB & README for npm
+- //npm publish
 - graphs
 - performance eval
 - demo ready
