@@ -1,17 +1,14 @@
-var io                 = require('socket.io').listen(9000).set('log level', 1) // reduce logging
-  , db                 = require('./db_adapter.js')
-  , consistency_levels = ['refresh-on-dirty', 'flush-on-dirty', 'fire-and-forget']
-  , consistency_level  = 0
-  , server_cache       = {}
-  , program            = require('commander')
-  , colors             = require('colors')
-  , fs                 = require('fs')
-  , path               = require('path')
-  , fileName           = 'waferdb_metadata.js'
-  , backupFileName     = path.join(__dirname, fileName)
-  , snapshot_length    = 0
+var io                    = require('socket.io').listen(9000).set('log level', 1) // reduce logging
+  , db                    = require('./db_adapter.js')
+  , server_cache          = {}
+  , colors                = require('colors')
+  , fs                    = require('fs')
+  , path                  = require('path')
+  , fileName              = 'waferdb_metadata.js'
+  , backupFileName        = path.join(__dirname, fileName)
+  , snapshot_length       = 0
   , backup_write_interval = 10000
-  , grace_period       = 10000
+  , grace_period          = 10000
 ;
 
 exports.init = init;
@@ -176,11 +173,6 @@ function invalidate_caches(key, value, socket, delete_flag, cb){
 function writeBackupToDisk(){
   console.log('\n\nwriteBackupToDisk fired');
 
-  /*console.log('--');
-  console.log(server_cache);
-  console.log('--');
-  console.log(snapshot_length);*/
-
   // Don't write to disk if there are no changes
   if(server_cache && snapshot_length !== Object.keys(server_cache).length) {
     snapshot_length = Object.keys(server_cache).length;
@@ -229,24 +221,9 @@ function readBackupFromDisk() {
 }
 
 function init(db_type, db_object){
-  /**
-    * Set consistency level and config at startup
-    *
-    */
-  program
-    .version('0.0.1')
-    .option('-f, --config', 'Config Filename')
-    .option('-c, --consistency [level]', 'Tunably Consistency Level')
-    .parse(process.argv);
-
-  if(program.consistency) consistency_level = program.consistency;
-  if(!program.config) console.log('Server running with default config file.'.yellow);
-
-  console.log('Running server with consistency of ['.yellow, consistency_levels[consistency_level], ']'.yellow);
-
   readBackupFromDisk();
 
-  //call fun using set interval
+  //call function to write backups using set interval
   setInterval(writeBackupToDisk, backup_write_interval);
 
   db.setupDB(db_type, db_object);
