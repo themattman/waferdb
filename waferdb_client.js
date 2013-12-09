@@ -166,7 +166,7 @@ var wafer = (function(){
     * UPDATE:
     *  goes to server to add the line
     * Server could already have the line, in which case update the cache acordingly
-    */  
+    */
   API.update = function(key, value, cb){
     console.group('UPDATE');
     console.log('waferdb_client.update('+key+', '+value+')');

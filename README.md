@@ -29,14 +29,6 @@ A lightweight caching layer for a key-value store.
       }
     });
 
-## tunable consistency
-
-### refresh-on-dirty
-
-### purge-on-dirty
-
-### fire-and-forget
-
 ## evaluation
 
 Latency - A graph showing response times with and without waferDB.
@@ -45,20 +37,9 @@ Efficiency - A graph comparing the overhead of maintaining fresh objects in the 
 
 Scalability - Measure performance with N clients.
 
-## dbconfig.json
-
-  {
-    "db": "mongo",
-    "username": "yolo",
-    "password": "yolo",
-    "hostname": "yolo",
-    "port": "yolo",
-    "namespace": "yolo"
-  }
-
 ## tests
 
-We will have a `test` folder that utilizes tap `https://npmjs.org/package/tap`
+Will get to this later...
 
 ## install (eventually)
 
@@ -93,6 +74,16 @@ Balaji Soundararajan
   - deleting non-existant keys
   - alert on failure not success
   - update/insert empty key (don't allow)
+
+
+
+- clean up DB & README for npm
+- npm publish
+- graphs
+- performance eval
+- demo ready
+
+
 
 VISUALS
 - performance graphs
