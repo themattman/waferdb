@@ -28,20 +28,16 @@ A lightweight caching layer for a key-value store.
         // ...
       }
     });
+    
+## motivation
 
-## evaluation
+WaferDB is a Javascript library that client-side Web applications can use to access a database. From the client’s perspective, WaferDB is the entire datastore. From the server’s perspective, WaferDB is a caching layer.
 
-Latency - A graph showing response times with and without waferDB.
+The database behind WaferDB can either be local to the web server, or a remote cloud service. The main purpose of WaferDB is to provide an easy-to-use client-side API for data access, as well as a layer that reduces latency to clients of a webserver. This layer will cache objects on the client whenever possible and will be backed by a shared, server-side database system.
 
-Efficiency - A graph comparing the overhead of maintaining fresh objects in the cache vs. dumping objects on dirty.
+In other words, WaferDB is a caching middleware for Javascript that allows a client to cache all kinds of data in native JSON format. The server maintains metadata about all the client-side caches and coordinates consistency between them.
 
-Scalability - Measure performance with N clients.
-
-## tests
-
-Will get to this later...
-
-## install (eventually)
+## install
 
 `npm install waferdb`
 
@@ -57,35 +53,8 @@ Balaji Soundararajan
 
 - will return the object associated with that key. To optimize for low latency, this object maybe cached on the client. Caching takes into account dirty objects, and replenishes them according to the consistency level the server is set to.
 
-- run a command to get statistics (cache hit rate, etc.)
-
-- resilient to server going down/reconnects save state (write to fs asynchly, don't affect server perf)
+- resilient to server going down/reconnects save state (write to fs asynchly, doesn't affect server performance too much)
 
 - db adapter is modular and easy to extend
 
-- API should let you write if(data.success) { "success": "success" }
-
-## TODO
-- don't invalidate cache of sender on delete
-- ensure mongo integration
-- cloud mongo integration
-- pull/push changes
-- CRUD
-  - deleting non-existant keys
-  - alert on failure not success
-  - update/insert empty key (don't allow)
-
-
-
-- //clean up DB & README for npm
-- //npm publish
-- graphs
-- performance eval
-- demo ready
-
-
-
-VISUALS
-- performance graphs
-- view of the cache
-- buttons to send data
+- front-end API should let you write if(data.success) { "success": "success" }
